@@ -2,12 +2,40 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const User = require("./user");
+const Article = require("./article");
 
 const MONGODB_URI = `mongodb+srv://${process.env.MONDOGB_USERNAME}:${process.env.MONDOGB_PASSWORD}@cluster0.otwx1ks.mongodb.net/${process.env.MONDOGB_DATABASE}`;
 
 const app = express();
 
 app.use(express.json()); //altrimenti le chiamate rest non funzionano
+
+
+const thisWillRunInEveryRequest = (req, res, next) => {
+  console.log('running the middleware for', req.method, req.originalUrl);
+  next();
+}
+
+app.use(thisWillRunInEveryRequest);
+
+const pagination = (req, res, next) => {
+  const pageAsNumber = Number.parseInt(req.query.page);
+  const sizeAsNumber = Number.parseInt(req.query.size);
+
+  let page = 0;
+  if(!Number.isNaN(pageAsNumber) && pageAsNumber > 0){
+    page = pageAsNumber;
+  }
+
+  let size = 10;
+  if(!Number.isNaN(sizeAsNumber) && !(sizeAsNumber > 10) && !(sizeAsNumber < 1)){
+    size = sizeAsNumber;
+  }
+  req.pagination = {
+    page, size
+  }
+  next();
+}
 
 app.post("/users", async (req, res) => {
   const user = new User({
@@ -24,25 +52,9 @@ app.post("/users", async (req, res) => {
   }
 });
 
-app.get("/users", async (req, res) => {
+app.get("/users", pagination, async (req, res) => {
   try {
-    const pageAsNumber = Number.parseInt(req.query.page);
-    const sizeAsNumber = Number.parseInt(req.query.size);
-
-    let page = 0;
-    if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
-      page = pageAsNumber;
-    }
-
-    let size = 10;
-    if (
-      !Number.isNaN(sizeAsNumber) &&
-      !(sizeAsNumber > 10) &&
-      !(sizeAsNumber < 1)
-    ) {
-      size = sizeAsNumber;
-    }
-
+    const { page, size } = req.pagination;
     const usersWithCount = await User.find()
       .skip(page * size)
       .limit(size);
@@ -68,11 +80,17 @@ function UserNotFoundException() {
   this.message = "User not found";
 }
 
-app.get("/users/:id", async (req, res, next) => {
+const objectIdNumberControl = (req, res, next) => {
   const id = req.params.id;
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    next(new InvalidObjectIdException('Object id not found'));
+    throw new InvalidObjectIdException();
+    //next(new InvalidObjectIdException());
   }
+  next();
+}
+
+app.get("/users/:id", objectIdNumberControl, async (req, res, next) => {
+  const id = req.params.id;
   const user = await User.findById(id);
   if (!user) {
     next(new UserNotFoundException('User not found'));
@@ -80,7 +98,7 @@ app.get("/users/:id", async (req, res, next) => {
   res.send(user);
 });
 
-app.put("/users/:id", async (req, res) => {
+app.put("/users/:id", objectIdNumberControl, async (req, res) => {
   const id = req.params.id;
   try {
     const user = await User.findById(id);
@@ -91,12 +109,11 @@ app.put("/users/:id", async (req, res) => {
     console.log(err);
     res.status(400).send({ message: "error update single users" });
   }
-  //const user = await User.findOne({where: {id: id}});
 });
 
 
 
-app.delete("/users/:id", async (req, res) => {
+app.delete("/users/:id", objectIdNumberControl, async (req, res) => {
   const id = req.params.id;
   try {
     await User.deleteOne({ _id: id });
@@ -104,6 +121,25 @@ app.delete("/users/:id", async (req, res) => {
     res.send("removed");
   } catch (err) {
     res.send("error removed");
+  }
+});
+
+//ARTICLES
+app.get("/articles", pagination, async (req, res) => {
+  try {
+    const { page, size } = req.pagination;
+    const articlesWithCount = await User.find()
+      .skip(page * size)
+      .limit(size);
+
+    const numberArticle = await User.find().countDocuments();
+    res.send({
+      content: articlesWithCount,
+      totalPages: Math.ceil(numberArticle / Number.parseInt(size)),
+    });
+  } catch (err) {
+    console.log(err);
+    res.send("error get articles");
   }
 });
 
@@ -131,8 +167,12 @@ mongoose
       });
       try {
         await user.save();
+        const article = new Article({
+          content: `article content ${i}`
+        });
+        await article.save();
       } catch (err) {
-        console.log("errore creazione utenti");
+        console.log("errore ",err);
       }
     }
   })
