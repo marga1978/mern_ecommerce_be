@@ -6,18 +6,18 @@ exports.postUser = () => {
   return [
     body("username")
       .notEmpty()
-      .withMessage("Username cannot be null")
+      .withMessage("username_null")
       .bail()
       .isLength({ min: 4, max: 32 })
-      .withMessage("Username must have min 4 max 32 characters"),
+      .withMessage("username_size"),
     body("email")
       .isEmail()
-      .withMessage("Must be a valid e-mail address")
+      .withMessage("email_invalid")
       .bail()
       .custom(async (email) => {
         const user = await UserService.findByEmail(email);
         if (user) {
-          throw new Error("Email in use");
+          throw new Error("email_inuse");
         }
       }),
   ];

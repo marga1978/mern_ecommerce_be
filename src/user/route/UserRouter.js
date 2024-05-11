@@ -14,16 +14,17 @@ router.post(
   "/users",
   postUser(),
   async (req, res, next) => {
-    try {
+    //try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        throw new ValidationException(errors.array());
+        return next(new ValidationException(errors.array()))
       }
       await UserService.create(req.body);
-      res.send("success");
-    } catch (err) {
-      res.send(err);
-    }
+      res.send({message: req.t('user_create_success')});
+      
+    // } catch (err) {
+    //   res.send(err);
+    // }
   }
 );
 
@@ -32,7 +33,7 @@ router.get("/users", pagination, async (req, res) => {
     const pageUser = await UserService.getUsers(req.pagination);
     res.send(pageUser);
   } catch (err) {
-    res.send(err);
+    next(err);
   }
 });
 
@@ -41,23 +42,27 @@ router.get("/users/:id", objectIdControl, async (req, res, next) => {
     const user = await UserService.getUser(req.params.id);
     res.send(user);
   } catch (err) {
-    console.log("errore singolo utente");
     next(err);
   }
 });
 
 router.put("/users/:id", objectIdControl, async (req, res) => {
-  await UserService.getUser(req.params.id, req.body);
-  res.send("updated");
+  try{
+    await UserService.getUser(req.params.id, req.body);
+    res.send("updated");
+  }catch(err){
+    next(err);
+  }
+  
 });
 
 router.delete("/users/:id", objectIdControl, async (req, res) => {
   const id = req.params.id;
-  try {
+  try{
     await UserService.deleteUser(id);
     res.send("removed");
-  } catch (err) {
-    res.send("error removed");
+  }catch(err){
+    next(err);
   }
 });
 

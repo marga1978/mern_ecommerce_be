@@ -16,7 +16,7 @@ router.get("/articles", pagination, async (req, res) => {
       totalPages: Math.ceil(numberArticle / Number.parseInt(size)),
     });
   } catch (err) {
-    console.log(err);
+    //console.log(err);
     res.send("error get articles");
   }
 });

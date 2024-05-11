@@ -16,10 +16,11 @@ const create = async (body) => {
 
 const getUsers = async (pagination) => {
   const { page, size } = pagination;
+  
   const usersWithCount = await User.find()
     .skip(page * size)
-    .limit(size);
-
+    .limit(size)
+    .select('email username');  
   const numberUser = await User.find().countDocuments();
   return {
     content: usersWithCount,
@@ -30,7 +31,7 @@ const getUsers = async (pagination) => {
 const getUser = async (id) => {
   const user = await User.findById(id);
   if (!user) {
-    throw new UserNotFoundException();
+    throw new UserNotFoundException()
   }
   return user;
 };

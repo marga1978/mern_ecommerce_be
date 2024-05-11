@@ -1,11 +1,17 @@
 module.exports = (err, req, res, next) => {
-  console.log("error handler")
+  const { status, message, errors } = err;
+  let validationErrors;
+  if (errors) {
+    validationErrors = {};
+    errors.forEach((error) => (validationErrors[error.path] = req.t(error.msg)));
+  }
   res
-    .status(err.status)
+    .status(status)
     .send(
       {
-        message: err.message,
+        message: req.t(message),
         timestamp: Date.now(),
-        path: req.originalUrl
+        path: req.originalUrl,
+        validationErrors
       });
 }
