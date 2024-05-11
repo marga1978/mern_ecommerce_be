@@ -1,6 +1,6 @@
 const express = require("express");
 
-const UserRouter = require('./user/UserRouter');
+const UserRouter = require('./user/route/UserRouter');
 const ErrorHandler = require('./error/ErrorHandler');
 const ArticleRouter = require('./article/ArticleRouter');
 

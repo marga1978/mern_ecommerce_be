@@ -1,7 +1,7 @@
 require("dotenv").config();
 //const express = require("express");
 const mongoose = require("mongoose");
-const User = require("./src/user/User");
+const User = require("./src/user/model/User");
 const Article = require("./src/article/Article");
 const app = require('./src/app');
 

@@ -1,5 +1,5 @@
 module.exports = (req, res, next) => {
-  console.log("mia paginazione")
+  
   const pageAsNumber = Number.parseInt(req.query.page);
   const sizeAsNumber = Number.parseInt(req.query.size);
 
