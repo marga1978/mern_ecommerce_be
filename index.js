@@ -4,15 +4,32 @@ const mongoose = require("mongoose");
 const User = require("./src/user/model/User");
 const Article = require("./src/article/Article");
 const app = require('./src/app');
+const config = require("./config");
 
-const MONGODB_URI = `mongodb+srv://${process.env.MONDOGB_USERNAME}:${process.env.MONDOGB_PASSWORD}@cluster0.otwx1ks.mongodb.net/${process.env.MONDOGB_DATABASE}`;
+//const config = require('config');
+//console.log("config.get('Customer.dbConfig')",config.get('Customer.dbConfig'))
+//...
+//const dbConfig = config.get('Customer.dbConfig');
+//db.connect(dbConfig, ...);
 
+// if (config.has('optionalFeature.detail')) {
+//   const detail = config.get('optionalFeature.detail');
+// }
+
+// console.log(config.get('database_user'))
+// console.log(config.get('database_user'))
+
+//const config=require("config")
+
+//console.log("XXX",config.get("database"))
+
+
+
+const MONGODB_URI = `mongodb+srv://${config.USERNAME}:${config.PASSWORD}@cluster0.otwx1ks.mongodb.net/${config.DATABASE}`;
 mongoose
   .connect(MONGODB_URI)
   .then(async (result) => {
-    //app.listen(process.env.PORT || 3000);
-    
-    app.listen(3000);
+    app.listen(config.PORT);
     for (let i = 1; i <= 5; i++) {
       const user = new User({
         username: `user${i}`,
